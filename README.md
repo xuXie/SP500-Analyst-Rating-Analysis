@@ -52,11 +52,11 @@
 
 #### 2. 核心特征工程 (Feature Engineering)
 - **预期看涨程度 ($X$)**：使用当期与前期目标价，计算预期看涨溢价率：
-  $$\text{expected\_bullishness} = \frac{\text{current\_price\_target} - \text{prior\_price\_target}}{\text{prior\_price\_target}}$$
+  `` `expected_bullishness` = (`current_price_target` - `prior_price_target`) / `prior_price_target` ``
 - **离群值截尾 (Trimming)**：采用双端 0.5% 分位数截尾（保留 $[P_{0.5}, P_{99.5}]$ 区间），防止极端错报数据拉拽 OLS 回归线。
 - **非线性二次项 ($X^2$)**：构建 `expected_bullishness_sq`。
 - **实际超额收益率 ($Y$)**：计算同年份标普 500 平均 180 天收益率作为大盘基准：
-  $$\text{actual\_excess\_return\_180d} = \text{forward\_return\_180d\_pct} - \text{Yearly\_Market\_Mean}$$
+  `` `actual_excess_return_180d` = `forward_return_180d_pct` - `Yearly_Market_Mean` ``
 
 #### 3. 板块与行业精准映射
 - **半导体板块 (`Semiconductors`)**：包含 `NVDA`, `AVGO`, `AMD`, `INTC`, `QCOM`, `TXN`, `AMAT`, `LRCX`, `ADI`, `MU`, `KLAC`, `MCHP`, `MPWR`, `ON` 共 14 只高成长、高估值弹性龙头股票。
