@@ -27,9 +27,9 @@
 
 | 变量名称 | 变量符号 | 变量类型 | 数据来源 / 计算公式 | 在模型中的角色与含义 |
 | :--- | :--- | :--- | :--- | :--- |
-| **实际超额收益** | $Y$ (`actual_excess_return_180d`) | **因变量** | $\text{forward\_return\_180d\_pct} - \text{Yearly\_Market\_Mean}$ | 剔除大盘系统性走势后的 180 天个股 Alpha 超额回报率。 |
-| **预期看涨程度** | $X$ (`expected_bullishness`) | **自变量** | $\frac{\text{current\_price\_target} - \text{prior\_price\_target}}{\text{prior\_price\_target}}$ | 量化分析师给出的相对目标价看涨溢价比例。 |
-| **看涨二次项** | $X^2$ (`expected_bullishness_sq`) | **自变量** | $(\text{expected\_bullishness})^2$ | **捕捉倒 U 型/凹凸非线性关系**（验证极端看涨惩罚机制）。 |
+| **实际超额收益** | $Y$ (`actual_excess_return_180d`) | **因变量** | `` `forward_return_180d_pct` - `Yearly_Market_Mean` `` | 剔除大盘系统性走势后的 180 天个股 Alpha 超额回报率。 |
+| **预期看涨程度** | $X$ (`expected_bullishness`) | **自变量** | `` (`current_price_target` - `prior_price_target`) / `prior_price_target` `` | 量化分析师给出的相对目标价看涨溢价比例。 |
+| **看涨二次项** | $X^2$ (`expected_bullishness_sq`) | **自变量** | `` `expected_bullishness` ** 2 `` | **捕捉倒 U 型/凹凸非线性关系**（验证极端看涨惩罚机制）。 |
 | **机构固定效应** | $FE_{\text{firm}}$ (`C(firm)`) | **固定效应** | 提取自 `firm` 字段（券商/分析师机构） | 控制不同分析师机构的能力差异、评级偏向与机构固定效应。 |
 | **年份固定效应** | $FE_{\text{year}}$ (`C(event_year)`) | **固定效应** | 提取自 `event_date` 时间戳年份 | 控制宏观牛熊市等时间固定效应（Year FE）带来的遗漏变量偏差。 |
 | **板块分类** | $M$ (`industry_group`) | **异质性分组变量** | 根据 Ticker 精准映射为 `Semiconductors` / `Traditional Industry` / `Other/General` | 检验高成长（半导体）与传统稳健行业对看涨溢价容忍拐点的**异质性差异**。 |
