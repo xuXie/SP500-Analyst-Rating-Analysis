@@ -76,7 +76,7 @@
 
 #### 1. 全样本二次非线性 OLS 回归 (`模块 2`)
 - **计量回归方程**：
-  $$\text{actual\_excess\_return\_180d} = \beta_0 + \beta_1 X + \beta_2 X^2 + \sum \delta_j \text{Firm}_j + \sum \gamma_t \text{Year}_t + \epsilon$$
+  $$Y = \beta_0 + \beta_1 X + \beta_2 X^2 + \sum \delta_j \text{Firm}_j + \sum \gamma_t \text{Year}_t + \epsilon$$
 - **标准误修正**：采用 White 异方差稳健标准误 (`cov_type='HC1'`)，修正金融截面数据中的异方差问题。
 - **固定效应控制**：加入机构固定效应 (`C(firm)`) 和年份固定效应 (`C(event_year)`)，有效控制券商能力偏好与宏观牛熊周期引起的遗漏变量偏差。
 
