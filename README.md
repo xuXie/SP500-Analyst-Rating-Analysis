@@ -146,7 +146,7 @@ python 03_data_visualization_firm.py
 ├── 03_data_visualization_firm.py                  # 3. 学术可视化与描述统计脚本 (Step 3)
 ├── sp_500_analyst_rating_and_price_target_accuracy.csv # 4. 原始输入数据
 ├── processed_data.csv                            # 5. 清洗后数据集
-├── requirements.txt                              # 13. 依赖包列表
+├── requirements.txt                              # 6. 依赖包列表
 └── output_firm/                                   # 📂 结果导出目录
     ├── regression_results.csv                    # 全样本 regression 系数表
     ├── semicon_vs_traditional_comparison.csv    # 异质性板块对比汇总表
