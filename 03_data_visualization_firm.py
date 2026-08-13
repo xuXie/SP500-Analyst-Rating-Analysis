@@ -10,13 +10,13 @@
     ├── 1.1 导出路径配置 (Output Directory Setup)
     ├── 1.2 Seaborn / Matplotlib 字体与样式配置 (Style Setup)
     └── 1.3 核心变量与极值拐点参数定义 (Variables & Inflexion Parameters)
-2 图表渲染模块 (Academic Visualization Modules)
-    ├── 2.1 图1: 全样本看涨溢价 vs 180天超额收益 U 型二次拟合散点图 (Fig1_FullSample_U.png)
-    ├── 2.2 图2: 双面板图 — 异质性板块拟合曲线对比 + 行业分组均值收益柱状图 (Fig2_Industry_DualPanel.png)
-    ├── 2.3 图3: 看涨溢价分布直方图与 KDE 密度估计 (Fig3_Dist_Hist.png)
-    ├── 2.4 图4: 看涨溢价与多期收益率相关性矩阵热力图 (Fig4_Correlation_Heatmap.png)
-    ├── 2.5 图5: 10等分看涨溢价分位数平均超额收益折线图 (Fig5_Quantile_Line.png)
-    └── 2.6 图6: 半导体 vs 传统行业观察样本量对比图 (Fig6_Sample_Count.png)
+2 图表渲染模块 (Academic Visualization Modules - 调整后的生成顺序)
+    ├── 2.1 图1: 半导体、传统行业观测样本数量柱状图 (Fig1_Sample_Count.png)
+    ├── 2.2 图2: 半导体、传统行业看涨溢价分布直方图 (Fig2_Dist_Hist.png)
+    ├── 2.3 图3: 看涨溢价与多周期超额收益相关系数热力图 (Fig3_Correlation_Heatmap.png)
+    ├── 2.4 图4: 分析师看涨预期溢价图 (Fig4_FullSample_U.png)
+    ├── 2.5 图5: 半导体与传统行业异质性分析图 (Fig5_Industry_DualPanel.png)
+    └── 2.6 图6: 看涨溢价十分位数分组平均超额收益折线图 (Fig6_Quantile_Line.png)
 3 描述性统计导出模块 (Descriptive Statistics Export)
     └── 3.1 行业分组及全样本描述统计表格导出 (行业分组描述统计.csv)
 4 流程主入口 (Main Execution Pipeline)
@@ -57,20 +57,88 @@ def setup_environment():
     sns.set_theme(style="whitegrid")
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-# ==========================================
-# 2 图表渲染模块 (Visualizations)
-# ==========================================
 def save_fig_both_locations(fig, filename):
-    """保存图表至根目录与 output_firm/ 目录，保证项目兼容性"""
-    path_root = filename
+    """保存图表至output_firm"""
     path_output = os.path.join(OUTPUT_DIR, filename)
-    fig.savefig(path_root, dpi=300, bbox_inches="tight")
     fig.savefig(path_output, dpi=300, bbox_inches="tight")
     plt.close(fig)
 
-def generate_fig1_full_sample_u(df, df_plot):
-    """图1：全样本U型拟合散点图"""
-    print("  🎨 渲染 图1: 全样本看涨溢价与180天超额收益 U型二次拟合图...")
+# ==========================================
+# 2 图表渲染模块 (Visualizations - 按新顺序)
+# ==========================================
+
+def generate_fig1_sample_count(df):
+    """图1：半导体、传统行业观测样本数量柱状图"""
+    print("  🎨 渲染 图1: 半导体、传统行业观测样本数量柱状图 (Fig1_Sample_Count.png)...")
+    fig, ax = plt.subplots(figsize=(7, 4))
+
+    sample_counts = df.groupby(COL_GROUP, observed=False).size()
+    sample_groups = [LABEL_SEMI, LABEL_TRAD]
+    sample_nums = [sample_counts[LABEL_SEMI], sample_counts[LABEL_TRAD]]
+
+    ax.bar(sample_groups, sample_nums, color=["#0044cc", "#ff7722"])
+    ax.set_title("Number of Observations per Industry", fontsize=14)
+    ax.set_ylabel("Observation Count")
+
+    for bar in ax.patches:
+        h = bar.get_height()
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            h + 100,
+            f"{int(h)}",
+            ha="center",
+            fontsize=9
+        )
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+
+    save_fig_both_locations(fig, "Fig1_Sample_Count.png")
+
+
+def generate_fig2_dist_hist(df_plot):
+    """图2：半导体、传统行业看涨溢价分布直方图"""
+    print("  🎨 渲染 图2: 半导体、传统行业看涨溢价分布直方图 (Fig2_Dist_Hist.png)...")
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    df_hist = df_plot[df_plot[COL_GROUP].isin([LABEL_SEMI, LABEL_TRAD])]
+    sns.histplot(data=df_hist, x=COL_X, hue=COL_GROUP, kde=True, alpha=0.5, ax=ax)
+
+    ax.set_title("Distribution of Analyst Bullish Premium", fontsize=14)
+    ax.set_xlabel("Bullish Expectation Premium")
+    ax.set_ylabel("Frequency")
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+
+    save_fig_both_locations(fig, "Fig2_Dist_Hist.png")
+
+
+def generate_fig3_correlation_heatmap(df):
+    """图3：看涨溢价与多周期超额收益相关系数热力图"""
+    print("  🎨 渲染 图3: 看涨溢价与多周期超额收益相关系数热力图 (Fig3_Correlation_Heatmap.png)...")
+    fig, ax = plt.subplots(figsize=(8, 6))
+
+    corr_vars = [
+        COL_X,
+        "forward_return_30d_pct",
+        "forward_return_90d_pct",
+        COL_Y,
+        "forward_return_365d_pct"
+    ]
+    corr_df = df[corr_vars].corr()
+
+    sns.heatmap(corr_df, annot=True, cmap="Blues", fmt=".2f", linewidths=0.5, ax=ax)
+    ax.set_title("Correlation Matrix of Bullish Premium & Multi-period Returns", fontsize=14)
+    ax.set_xticklabels(["Premium", "30d Ret", "90d Ret", "180d Ret", "365d Ret"], fontsize=9)
+    ax.set_yticklabels(["Premium", "30d Ret", "90d Ret", "180d Ret", "365d Ret"], fontsize=9)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+
+    save_fig_both_locations(fig, "Fig3_Correlation_Heatmap.png")
+
+
+def generate_fig4_full_sample_u(df, df_plot):
+    """图4：分析师看涨预期溢价图 (全样本 U型二次拟合图)"""
+    print("  🎨 渲染 图4: 分析师看涨预期溢价图 (Fig4_FullSample_U.png)...")
     fig, ax = plt.subplots(figsize=(10, 6))
 
     sns.scatterplot(data=df_plot, x=COL_X, y=COL_Y, alpha=0.3, ax=ax)
@@ -90,11 +158,12 @@ def generate_fig1_full_sample_u(df, df_plot):
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
 
-    save_fig_both_locations(fig, "Fig1_FullSample_U.png")
+    save_fig_both_locations(fig, "Fig4_FullSample_U.png")
 
-def generate_fig2_industry_dual_panel(df, df_plot):
-    """图2【双子图】：左面板拟合对比 + 右面板分组均值柱状图"""
-    print("  🎨 渲染 图2: 双面板异质性对比图 (拟合曲线 + 收益率均值)...")
+
+def generate_fig5_industry_dual_panel(df, df_plot):
+    """图5：半导体与传统行业异质性分析图 (双面板图)"""
+    print("  🎨 渲染 图5: 半导体与传统行业异质性分析图 (Fig5_Industry_DualPanel.png)...")
     fig, (ax_left, ax_right) = plt.subplots(1, 2, figsize=(14, 6), gridspec_kw={"wspace": 0.32})
 
     df_semi_raw = df[df[COL_GROUP] == LABEL_SEMI]
@@ -159,50 +228,12 @@ def generate_fig2_industry_dual_panel(df, df_plot):
     ax_right.spines['right'].set_visible(False)
     ax_right.grid(True, alpha=0.35)
 
-    save_fig_both_locations(fig, "Fig2_Industry_DualPanel.png")
+    save_fig_both_locations(fig, "Fig5_Industry_DualPanel.png")
 
-def generate_fig3_dist_hist(df_plot):
-    """图3：看涨溢价分布直方图"""
-    print("  🎨 渲染 图3: 分析师看涨溢价分布直方图与 KDE 密度估计...")
-    fig, ax = plt.subplots(figsize=(10, 6))
 
-    df_hist = df_plot[df_plot[COL_GROUP].isin([LABEL_SEMI, LABEL_TRAD])]
-    sns.histplot(data=df_hist, x=COL_X, hue=COL_GROUP, kde=True, alpha=0.5, ax=ax)
-
-    ax.set_title("Distribution of Analyst Bullish Premium", fontsize=14)
-    ax.set_xlabel("Bullish Expectation Premium")
-    ax.set_ylabel("Frequency")
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-
-    save_fig_both_locations(fig, "Fig3_Dist_Hist.png")
-
-def generate_fig4_correlation_heatmap(df):
-    """图4：多期收益率相关性热力图"""
-    print("  🎨 渲染 图4: 看涨溢价与多期收益率相关性矩阵热力图...")
-    fig, ax = plt.subplots(figsize=(8, 6))
-
-    corr_vars = [
-        COL_X,
-        "forward_return_30d_pct",
-        "forward_return_90d_pct",
-        COL_Y,
-        "forward_return_365d_pct"
-    ]
-    corr_df = df[corr_vars].corr()
-
-    sns.heatmap(corr_df, annot=True, cmap="Blues", fmt=".2f", linewidths=0.5, ax=ax)
-    ax.set_title("Correlation Matrix of Bullish Premium & Multi-period Returns", fontsize=14)
-    ax.set_xticklabels(["Premium", "30d Ret", "90d Ret", "180d Ret", "365d Ret"], fontsize=9)
-    ax.set_yticklabels(["Premium", "30d Ret", "90d Ret", "180d Ret", "365d Ret"], fontsize=9)
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-
-    save_fig_both_locations(fig, "Fig4_Correlation_Heatmap.png")
-
-def generate_fig5_quantile_line(df):
-    """图5：溢价分箱折线图（稳健性检验）"""
-    print("  🎨 渲染 图5: 10等分看涨溢价分位数与平均超额收益折线图...")
+def generate_fig6_quantile_line(df):
+    """图6：看涨溢价十分位数分组平均超额收益折线图"""
+    print("  🎨 渲染 图6: 看涨溢价十分位数分组平均超额收益折线图 (Fig6_Quantile_Line.png)...")
     fig, ax = plt.subplots(figsize=(9, 5))
 
     df_copy = df.copy()
@@ -222,34 +253,7 @@ def generate_fig5_quantile_line(df):
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
 
-    save_fig_both_locations(fig, "Fig5_Quantile_Line.png")
-
-def generate_fig6_sample_count(df):
-    """图6：两组行业样本量柱状图"""
-    print("  🎨 渲染 图6: 半导体 vs 传统行业观察样本量对比图...")
-    fig, ax = plt.subplots(figsize=(7, 4))
-
-    sample_counts = df.groupby(COL_GROUP, observed=False).size()
-    sample_groups = [LABEL_SEMI, LABEL_TRAD]
-    sample_nums = [sample_counts[LABEL_SEMI], sample_counts[LABEL_TRAD]]
-
-    ax.bar(sample_groups, sample_nums, color=["#0044cc", "#ff7722"])
-    ax.set_title("Number of Observations per Industry", fontsize=14)
-    ax.set_ylabel("Observation Count")
-
-    for bar in ax.patches:
-        h = bar.get_height()
-        ax.text(
-            bar.get_x() + bar.get_width() / 2,
-            h + 100,
-            f"{int(h)}",
-            ha="center",
-            fontsize=9
-        )
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-
-    save_fig_both_locations(fig, "Fig6_Sample_Count.png")
+    save_fig_both_locations(fig, "Fig6_Quantile_Line.png")
 
 # ==========================================
 # 3 描述性统计表格导出模块 (Export Table)
@@ -318,7 +322,7 @@ def main():
         print(f"❌ 错误：未找到输入文件 {INPUT_FILE}，请先运行 01_data_acquisition_firm.py 生成清洗后数据。")
         return
 
-    print("🚀 [3/3] 开始执行学术可视化图表渲染与统计表格导出...")
+    print("🚀 [3/3] 开始按新顺序执行学术可视化图表渲染与统计表格导出...")
     df = pd.read_csv(INPUT_FILE, encoding="utf-8-sig")
     print(f"📊 读取数据集成功，总记录数: {len(df)} 条")
 
@@ -327,18 +331,18 @@ def main():
     q_high = df[COL_Y].quantile(0.99)
     df_plot = df[(df[COL_Y] >= q_low) & (df[COL_Y] <= q_high)].copy()
 
-    # 渲染全部 6 个图表
-    generate_fig1_full_sample_u(df, df_plot)
-    generate_fig2_industry_dual_panel(df, df_plot)
-    generate_fig3_dist_hist(df_plot)
-    generate_fig4_correlation_heatmap(df)
-    generate_fig5_quantile_line(df)
-    generate_fig6_sample_count(df)
+    # 渲染全部 6 个图表 (按新顺序)
+    generate_fig1_sample_count(df)
+    generate_fig2_dist_hist(df_plot)
+    generate_fig3_correlation_heatmap(df)
+    generate_fig4_full_sample_u(df, df_plot)
+    generate_fig5_industry_dual_panel(df, df_plot)
+    generate_fig6_quantile_line(df)
 
     # 导出描述统计表格
     export_descriptive_stats(df)
 
-    print("\n🎉 [完成] 所有可视化学术图表 (Fig1~Fig6) 及描述统计表格处理完毕！")
+    print("\n🎉 [完成] 所有可视化学术图表 (Fig1~Fig6) 及描述统计表格按新顺序处理完毕！")
 
 if __name__ == "__main__":
     main()
