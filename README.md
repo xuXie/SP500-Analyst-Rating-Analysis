@@ -146,13 +146,6 @@ python 03_data_visualization_firm.py
 ├── 03_data_visualization_firm.py                  # 3. 学术可视化与描述统计脚本 (Step 3)
 ├── sp_500_analyst_rating_and_price_target_accuracy.csv # 4. 原始输入数据
 ├── processed_data.csv                            # 5. 清洗后数据集
-├── 行业分组描述统计.csv                             # 6. 行业分组与全样本描述性统计表
-├── Fig1_FullSample_U.png                         # 7. 全样本 U 型二次拟合图
-├── Fig2_Industry_DualPanel.png                   # 8. 异质性双面板拟合与均值图
-├── Fig3_Dist_Hist.png                            # 9. 看涨溢价分布直方图
-├── Fig4_Correlation_Heatmap.png                  # 10. 多期收益率相关性热力图
-├── Fig5_Quantile_Line.png                        # 11. 10等分分位数收益折线图
-├── Fig6_Sample_Count.png                         # 12. 观察样本量对比图
 ├── requirements.txt                              # 13. 依赖包列表
 └── output_firm/                                   # 📂 结果导出目录
     ├── regression_results.csv                    # 全样本 regression 系数表
